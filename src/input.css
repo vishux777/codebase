@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+  
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    @apply font-display bg-gray-950 text-white overflow-x-hidden;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-white/10 backdrop-blur-md border border-white/20 rounded-xl shadow-xl;
+  }
+  
+  .glass-card-dark {
+    @apply bg-black/30 backdrop-blur-md border border-white/10 rounded-xl shadow-2xl;
+  }
+  
+  .btn-primary {
+    @apply px-6 py-3 bg-gradient-to-r from-pathsafe-blue to-pathsafe-purple rounded-lg font-semibold 
+           hover:shadow-lg hover:shadow-pathsafe-blue/50 transition-all duration-300 transform hover:scale-105;
+  }
+  
+  .btn-secondary {
+    @apply px-6 py-3 glass-card font-semibold hover:bg-white/20 transition-all duration-300;
+  }
+  
+  .gradient-text {
+    @apply bg-gradient-to-r from-pathsafe-blue via-pathsafe-purple to-pathsafe-green bg-clip-text text-transparent;
+  }
+  
+  .section-container {
+    @apply max-w-7xl mx-auto px-6 py-20;
+  }
+}
+
+@layer utilities {
+  .text-shadow {
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  }
+  
+  .glow-blue {
+    box-shadow: 0 0 20px rgba(0, 168, 255, 0.5);
+  }
+  
+  .glow-green {
+    box-shadow: 0 0 20px rgba(68, 255, 136, 0.5);
+  }
+  
+  .glow-red {
+    box-shadow: 0 0 20px rgba(255, 71, 87, 0.5);
+  }
+}

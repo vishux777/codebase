@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="PathSafe - AI-powered safe navigation platform with real-time risk scoring">
+    <title>PathSafe | AI-Powered Safe Navigation</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="bg-gray-950 text-white">
+    
+    <div id="preloader" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gray-950">
+        <div class="relative mb-8">
+            <div class="w-24 h-24 border-4 border-pathsafe-blue/30 border-t-pathsafe-blue rounded-full animate-spin"></div>
+            <div class="absolute inset-0 flex items-center justify-center">
+                <svg class="w-12 h-12 text-pathsafe-blue" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                </svg>
+            </div>
+        </div>
+        <h2 class="text-2xl font-bold gradient-text mb-4">PathSafe</h2>
+        <div class="w-64 h-2 bg-gray-800 rounded-full overflow-hidden">
+            <div id="progress-bar" class="h-full bg-gradient-to-r from-pathsafe-blue to-pathsafe-purple transition-all duration-300" style="width: 0%"></div>
+        </div>
+        <p id="progress-text" class="mt-4 text-gray-400">Loading 3D Experience... 0%</p>
+    </div>
+
+    <div id="demo-tour" class="fixed inset-0 z-40 bg-black/80 backdrop-blur-sm hidden items-center justify-center">
+        <div class="glass-card-dark max-w-2xl mx-4 p-8">
+            <h2 class="text-3xl font-bold gradient-text mb-4">Welcome to PathSafe 3D Demo</h2>
+            <p class="text-gray-300 mb-6">Experience AI-powered safe navigation in an immersive 3D environment.</p>
+            <div class="space-y-4 mb-8">
+                <div class="flex items-start gap-4">
+                    <div class="w-8 h-8 rounded-full bg-pathsafe-blue/20 flex items-center justify-center flex-shrink-0">
+                        <span class="text-pathsafe-blue font-bold">1</span>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold mb-1">Globe View</h3>
+                        <p class="text-sm text-gray-400">Press <kbd class="px-2 py-1 bg-gray-800 rounded">1</kbd> to see global safe routes and danger zones</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-4">
+                    <div class="w-8 h-8 rounded-full bg-pathsafe-purple/20 flex items-center justify-center flex-shrink-0">
+                        <span class="text-pathsafe-purple font-bold">2</span>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold mb-1">City View</h3>
+                        <p class="text-sm text-gray-400">Press <kbd class="px-2 py-1 bg-gray-800 rounded">2</kbd> to explore street-level navigation</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-4">
+                    <div class="w-8 h-8 rounded-full bg-pathsafe-green/20 flex items-center justify-center flex-shrink-0">
+                        <span class="text-pathsafe-green font-bold">3</span>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold mb-1">Auto Demo</h3>
+                        <p class="text-sm text-gray-400">Press <kbd class="px-2 py-1 bg-gray-800 rounded">3</kbd> for an automated tour</p>
+                    </div>
+                </div>
+            </div>
+            <div class="flex gap-4">
+                <button id="start-demo" class="btn-primary flex-1">Start Exploring</button>
+                <button id="skip-tour" class="btn-secondary">Skip Tour</button>
+            </div>
+        </div>
+    </div>
+
+    <canvas id="threejs-canvas" class="fixed inset-0 w-full h-full"></canvas>
+
+    <nav class="fixed top-0 left-0 right-0 z-30 glass-card-dark border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <svg class="w-8 h-8 text-pathsafe-blue" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                </svg>
+                <span class="text-2xl font-bold gradient-text">PathSafe</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <button id="toggle-view" class="btn-secondary text-sm" aria-label="Toggle between globe and city view">
+                    <span id="view-label">City View</span>
+                </button>
+                <button id="toggle-time" class="btn-secondary text-sm" aria-label="Toggle day and night mode">
+                    <span id="time-label">☀️ Day</span>
+                </button>
+                <a href="#sdk" class="btn-primary text-sm">Try SDK</a>
+            </div>
+        </div>
+    </nav>
+
+    <div id="info-card" class="fixed z-20 glass-card-dark p-6 max-w-sm hidden transition-all duration-300" style="left: 50%; top: 50%; transform: translate(-50%, -50%);">
+        <button id="close-card" class="absolute top-4 right-4 text-gray-400 hover:text-white" aria-label="Close info card">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </button>
+        <div id="card-content"></div>
+    </div>
+
+    <div id="stats-panel" class="fixed bottom-8 left-8 z-20 glass-card-dark p-4 text-sm">
+        <div class="flex items-center gap-2 mb-2">
+            <div class="w-3 h-3 rounded-full bg-safe-green animate-pulse"></div>
+            <span class="text-gray-400">Live Stats</span>
+        </div>
+        <div class="space-y-1 text-xs">
+            <div class="flex justify-between gap-4">
+                <span class="text-gray-400">Active Routes:</span>
+                <span id="stat-routes" class="font-mono text-pathsafe-blue">0</span>
+            </div>
+            <div class="flex justify-between gap-4">
+                <span class="text-gray-400">Danger Zones:</span>
+                <span id="stat-dangers" class="font-mono text-danger-red">0</span>
+            </div>
+            <div class="flex justify-between gap-4">
+                <span class="text-gray-400">Safety Score:</span>
+                <span id="stat-safety" class="font-mono text-safe-green">0</span>
+            </div>
+        </div>
+    </div>
+
+    <main class="relative z-10 pointer-events-none">
+        <section id="hero" class="min-h-screen flex items-center justify-center pt-20">
+            <div class="section-container text-center pointer-events-auto">
+                <h1 class="text-5xl md:text-7xl font-bold mb-6 text-shadow">
+                    Navigate <span class="gradient-text">Safely</span><br/>
+                    with AI Intelligence
+                </h1>
+                <p class="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto">
+                    PathSafe uses advanced AI to analyze real-time risk data and provide the safest routes for your journey.
+                </p>
+                <div class="flex flex-wrap gap-4 justify-center">
+                    <a href="#sdk" class="btn-primary">Explore SDK</a>
+                    <button id="watch-demo" class="btn-secondary">Watch Demo</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="mission" class="section-container pointer-events-auto">
+            <div class="glass-card-dark p-12 max-w-4xl mx-auto">
+                <h2 class="text-4xl font-bold gradient-text mb-6">Our Mission</h2>
+                <p class="text-lg text-gray-300 mb-6">
+                    PathSafe empowers developers and users with AI-driven navigation that prioritizes safety. 
+                    Our platform analyzes millions of data points in real-time to identify potential hazards, 
+                    from crime patterns to environmental risks, delivering routes that keep people safe.
+                </p>
+                <div class="grid md:grid-cols-3 gap-6">
+                    <div class="text-center">
+                        <div class="text-4xl font-bold gradient-text mb-2">95%</div>
+                        <div class="text-sm text-gray-400">Risk Reduction</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-4xl font-bold gradient-text mb-2">&lt;100ms</div>
+                        <div class="text-sm text-gray-400">Response Time</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-4xl font-bold gradient-text mb-2">24/7</div>
+                        <div class="text-sm text-gray-400">Real-time Monitoring</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="features" class="section-container pointer-events-auto">
+            <h2 class="text-4xl font-bold text-center gradient-text mb-12">Core Features</h2>
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="glass-card p-8 hover:scale-105 transition-transform duration-300">
+                    <div class="w-12 h-12 rounded-lg bg-pathsafe-blue/20 flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-pathsafe-blue" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Real-time Risk Scoring</h3>
+                    <p class="text-gray-400">Dynamic AI analysis of crime data, traffic incidents, and environmental hazards to calculate safety scores.</p>
+                </div>
+                <div class="glass-card p-8 hover:scale-105 transition-transform duration-300">
+                    <div class="w-12 h-12 rounded-lg bg-pathsafe-purple/20 flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-pathsafe-purple" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M9 11.75a2.5 2.5 0 1 1 5 0 2.5 2.5 0 0 1-5 0zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Intelligent Route Planning</h3>
+                    <p class="text-gray-400">AI-optimized paths that balance safety, efficiency, and user preferences across multiple modes of transport.</p>
+                </div>
+                <div class="glass-card p-8 hover:scale-105 transition-transform duration-300">
+                    <div class="w-12 h-12 rounded-lg bg-pathsafe-green/20 flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-pathsafe-green" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Developer-Ready SDK</h3>
+                    <p class="text-gray-400">Easy integration with popular map SDKs, comprehensive docs, and ready-to-use code examples.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="sdk" class="section-container pointer-events-auto">
+            <div class="glass-card-dark p-12 max-w-4xl mx-auto">
+                <h2 class="text-4xl font-bold gradient-text mb-8">PathSafe SDK</h2>
+                <p class="text-lg text-gray-300 mb-8">
+                    Integrate AI-powered safe navigation into your app with just a few lines of code. 
+                    Our SDK works seamlessly with Google Maps, Mapbox, and other popular mapping platforms.
+                </p>
+                
+                <div class="bg-gray-900 rounded-lg p-6 mb-8 font-mono text-sm overflow-x-auto">
+                    <div class="text-gray-500 mb-2">// Initialize PathSafe SDK</div>
+                    <div class="text-pathsafe-blue">const</div> <div class="text-white inline">pathsafe</div> <div class="text-pathsafe-purple inline">= new</div> <div class="text-pathsafe-green inline">PathSafe</div><div class="text-white inline">({</div>
+                    <div class="pl-4 text-gray-400">apiKey: <span class="text-warning-orange">'YOUR_API_KEY'</span>,</div>
+                    <div class="pl-4 text-gray-400">mode: <span class="text-warning-orange">'walking'</span></div>
+                    <div class="text-white">});</div>
+                    <div class="mt-4 text-gray-500">// Get safe route with real-time risk data</div>
+                    <div class="text-pathsafe-blue">const</div> <div class="text-white inline">route</div> <div class="text-pathsafe-purple inline">= await</div> <div class="text-white inline">pathsafe</div><div class="text-pathsafe-green inline">.getRoute</div><div class="text-white inline">({</div>
+                    <div class="pl-4 text-gray-400">origin: <span class="text-white">{</span> lat: <span class="text-pathsafe-blue">40.7128</span>, lng: <span class="text-pathsafe-blue">-74.0060</span> <span class="text-white">}</span>,</div>
+                    <div class="pl-4 text-gray-400">destination: <span class="text-white">{</span> lat: <span class="text-pathsafe-blue">40.7580</span>, lng: <span class="text-pathsafe-blue">-73.9855</span> <span class="text-white">}</span>,</div>
+                    <div class="pl-4 text-gray-400">preferences: <span class="text-white">{</span> prioritize: <span class="text-warning-orange">'safety'</span> <span class="text-white">}</span></div>
+                    <div class="text-white">});</div>
+                    <div class="mt-4 text-gray-500">// Access risk analysis and waypoints</div>
+                    <div class="text-white">console.<span class="text-pathsafe-green">log</span>(route.<span class="text-pathsafe-blue">safetyScore</span>); <span class="text-gray-500">// 92/100</span></div>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="flex items-start gap-3">
+                        <svg class="w-6 h-6 text-pathsafe-green flex-shrink-0 mt-1" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+                        </svg>
+                        <div>
+                            <h4 class="font-semibold mb-1">Simple Integration</h4>
+                            <p class="text-sm text-gray-400">Works with existing map libraries</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <svg class="w-6 h-6 text-pathsafe-green flex-shrink-0 mt-1" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+                        </svg>
+                        <div>
+                            <h4 class="font-semibold mb-1">Real-time Updates</h4>
+                            <p class="text-sm text-gray-400">Live danger zone notifications</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <svg class="w-6 h-6 text-pathsafe-green flex-shrink-0 mt-1" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+                        </svg>
+                        <div>
+                            <h4 class="font-semibold mb-1">Customizable</h4>
+                            <p class="text-sm text-gray-400">Tailor risk factors to your needs</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <svg class="w-6 h-6 text-pathsafe-green flex-shrink-0 mt-1" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+                        </svg>
+                        <div>
+                            <h4 class="font-semibold mb-1">Low Latency</h4>
+                            <p class="text-sm text-gray-400">Sub-100ms response times</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="section-container pointer-events-auto border-t border-white/10">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+                <div class="flex items-center gap-3">
+                    <svg class="w-8 h-8 text-pathsafe-blue" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                    </svg>
+                    <span class="text-xl font-bold gradient-text">PathSafe</span>
+                </div>
+                <div class="text-sm text-gray-400">
+                    &copy; 2025 PathSafe. AI-Powered Safe Navigation Platform.
+                </div>
+                <div class="flex gap-4">
+                    <a href="#" class="text-gray-400 hover:text-pathsafe-blue transition-colors">Docs</a>
+                    <a href="#" class="text-gray-400 hover:text-pathsafe-blue transition-colors">API</a>
+                    <a href="#" class="text-gray-400 hover:text-pathsafe-blue transition-colors">GitHub</a>
+                </div>
+            </div>
+        </footer>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r152/three.min.js"></script>
+    <script src="/script.js"></script>
+</body>
+</html>
