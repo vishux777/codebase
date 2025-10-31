@@ -26,33 +26,104 @@ class PathSafeApp {
     }
 
     init() {
-        scene = new THREE.Scene();
-        scene.fog = new THREE.FogExp2(0x000510, 0.002);
+        try {
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x000510, 0.002);
 
-        camera = new THREE.PerspectiveCamera(
-            60,
-            window.innerWidth / window.innerHeight,
-            0.1,
-            1000
-        );
-        camera.position.set(0, 5, 15);
-        camera.lookAt(0, 0, 0);
+            camera = new THREE.PerspectiveCamera(
+                60,
+                window.innerWidth / window.innerHeight,
+                0.1,
+                1000
+            );
+            camera.position.set(0, 5, 15);
+            camera.lookAt(0, 0, 0);
 
-        renderer = new THREE.WebGLRenderer({
-            canvas: this.container,
-            antialias: !isMobile,
-            alpha: true,
-            powerPreference: 'high-performance'
-        });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(isMobile ? 1 : Math.min(window.devicePixelRatio, 2));
-        renderer.shadowMap.enabled = !isMobile;
-        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-        renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.2;
+            const canvas = this.container;
+            const contextAttributes = {
+                alpha: true,
+                antialias: !isMobile,
+                powerPreference: 'high-performance',
+                failIfMajorPerformanceCaveat: false
+            };
 
-        this.setupLighting();
-        this.createStars();
+            const gl = canvas.getContext('webgl2', contextAttributes) || 
+                      canvas.getContext('webgl', contextAttributes) ||
+                      canvas.getContext('experimental-webgl', contextAttributes);
+
+            if (!gl) {
+                this.showFallback();
+                return;
+            }
+
+            renderer = new THREE.WebGLRenderer({
+                canvas: canvas,
+                context: gl,
+                antialias: !isMobile,
+                alpha: true,
+                powerPreference: 'high-performance'
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(isMobile ? 1 : Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = !isMobile;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.2;
+
+            this.setupPostProcessing();
+            this.setupLighting();
+            this.createStars();
+        } catch (error) {
+            console.error('WebGL initialization failed:', error);
+            this.showFallback();
+        }
+    }
+
+    showFallback() {
+        document.getElementById('preloader').style.display = 'none';
+        document.getElementById('demo-tour').classList.remove('hidden');
+        document.getElementById('demo-tour').classList.add('flex');
+        
+        const fallbackMessage = document.createElement('div');
+        fallbackMessage.className = 'fixed inset-0 z-10 flex items-center justify-center bg-gray-950';
+        fallbackMessage.innerHTML = `
+            <div class="text-center max-w-2xl mx-4 p-8 glass-card-dark">
+                <h2 class="text-3xl font-bold gradient-text mb-4">PathSafe Demo</h2>
+                <p class="text-gray-300 mb-6">
+                    This demo requires WebGL support. Your browser or environment doesn't support WebGL,
+                    but PathSafe works great on modern browsers with hardware acceleration.
+                </p>
+                <p class="text-sm text-gray-400">
+                    Try viewing this on Chrome, Firefox, or Safari with GPU acceleration enabled.
+                </p>
+            </div>
+        `;
+        document.body.insertBefore(fallbackMessage, document.body.firstChild);
+    }
+
+    setupPostProcessing() {
+        if (!isMobile && typeof THREE.EffectComposer !== 'undefined') {
+            this.composer = new THREE.EffectComposer(renderer);
+            
+            const renderPass = new THREE.RenderPass(scene, camera);
+            this.composer.addPass(renderPass);
+
+            const bloomPass = new THREE.UnrealBloomPass(
+                new THREE.Vector2(window.innerWidth, window.innerHeight),
+                1.5,
+                0.4,
+                0.85
+            );
+            bloomPass.threshold = 0.21;
+            bloomPass.strength = 1.2;
+            bloomPass.radius = 0.55;
+            this.composer.addPass(bloomPass);
+            this.bloomPass = bloomPass;
+
+            this.postProcessingEnabled = true;
+        } else {
+            this.postProcessingEnabled = false;
+        }
     }
 
     setupLighting() {
@@ -237,10 +308,12 @@ class PathSafeApp {
                 for (let j = 0; j < 5; j++) {
                     if (Math.random() > 0.5) {
                         const windowGeometry = new THREE.BoxGeometry(0.2, 0.3, 0.1);
-                        const windowMaterial = new THREE.MeshBasicMaterial({
+                        const windowMaterial = new THREE.MeshStandardMaterial({
                             color: 0xffdd00,
                             emissive: 0xffdd00,
-                            emissiveIntensity: 0.5
+                            emissiveIntensity: 0.8,
+                            roughness: 0.3,
+                            metalness: 0.1
                         });
                         const window = new THREE.Mesh(windowGeometry, windowMaterial);
                         window.position.set(
@@ -275,12 +348,14 @@ class PathSafeApp {
                 );
 
                 const tubeGeometry = new THREE.TubeGeometry(curve, 100, 0.1, 8, false);
-                const tubeMaterial = new THREE.MeshBasicMaterial({
+                const tubeMaterial = new THREE.MeshStandardMaterial({
                     color: data.color,
                     transparent: true,
                     opacity: 0.8,
                     emissive: data.color,
-                    emissiveIntensity: 0.5
+                    emissiveIntensity: 0.8,
+                    roughness: 0.3,
+                    metalness: 0.2
                 });
 
                 const tube = new THREE.Mesh(tubeGeometry, tubeMaterial);
@@ -542,6 +617,10 @@ class PathSafeApp {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
+            
+            if (this.composer) {
+                this.composer.setSize(window.innerWidth, window.innerHeight);
+            }
         });
 
         this.container.addEventListener('mousemove', (event) => {
@@ -711,7 +790,11 @@ class PathSafeApp {
 
         this.updateStats();
 
-        renderer.render(scene, camera);
+        if (this.postProcessingEnabled && this.composer) {
+            this.composer.render();
+        } else {
+            renderer.render(scene, camera);
+        }
     }
 }
 
