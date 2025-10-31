@@ -1,0 +1,39 @@
+Build a cutting-edge, frontend-first 3D website for PathSafe — an AI-powered safe-navigation platform — for a hackathon. Everything depends on the frontend: make it polished, performant, and demo-ready. Use only NodeJS (for dev server) + TailwindCSS + vanilla JS. You may use Three.js and GLSL shaders in client JS (no React, no frameworks).
+
+Project goals (one line):
+Showcase PathSafe’s AI safe-route scoring, live danger zones, and SDK value with immersive 3D visuals.
+
+Core deliverables:
+- Node.js dev server + Tailwind setup
+- index.html, tailwind.css (or built CSS), script.js
+- Optimized Three.js scene with fallback for mobile
+
+Must-have 3D features (add more and think like ChatGPT — make smart tradeoffs):
+- 3D globe **and** 3D city map toggle (Three.js)
+- Animated glowing safe-route lines (tube/curve geometry) with progressive drawing
+- Danger heatmap (shader-based or particle clusters) that pulses by severity
+- Floating 3D pins/avatars for incidents; clickable to show glass-morphism info cards
+- Animated vehicles/pedestrian icons moving along routes
+- Volumetric neon fog, bloom/glow post-processing, subtle DOF for depth
+- Interactive camera with smooth inertia, scroll-triggered camera flyovers, and preset demo camera paths
+- Shader-driven water/road sheen for realism
+- Low-poly 3D building silhouettes for skyline, with emissive windows for night mode
+- Particle systems for crowds and alerts
+- Night / Day toggle affecting lighting & risk multipliers
+- Lightweight mobile fallback: 2D canvas map + simplified route visuals
+
+UX, performance & hackathon notes:
+- Prioritize first-frame content; show preloader with rotating PathSafe logo and progress percent.
+- Keep scenes GPU-friendly: LOD, instancing, baked textures, max 60k tris.
+- Auto-disable expensive post-process on low-end devices.
+- Provide a “Start Demo” guided tour overlay and keyboard shortcuts (1–3) to trigger scenes.
+- Output accessible HTML, keyboard/narrative labels for cards, and small README.
+
+Content & copy:
+- Short mission intro, SDK benefits, code snippet card (example API call), Features grid, Carousel, Footer.
+- Emphasize “Developer-ready SDK”, “Real-time risk scoring”, “Integrates with Map SDKs”.
+
+Output files:
+- package.json, server.js (Node dev server), tailwind.config.js, index.html, styles.css (Tailwind build), script.js (Three.js + shaders), assets/ (placeholder images).
+
+Make smart UX choices, degrade gracefully, and keep the site demo-ready for a hackathon pitch.
