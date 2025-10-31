@@ -216,26 +216,37 @@ class PathSafeApp {
             const globeGroup = new THREE.Group();
             
             const globeGeometry = new THREE.SphereGeometry(5, 64, 64);
-            const globeMaterial = new THREE.MeshPhongMaterial({
-                color: 0x001a33,
-                emissive: 0x001a33,
-                emissiveIntensity: 0.2,
-                shininess: 30,
+            const globeMaterial = new THREE.MeshStandardMaterial({
+                color: 0x002244,
+                emissive: 0x003366,
+                emissiveIntensity: 0.3,
+                roughness: 0.7,
+                metalness: 0.3,
                 transparent: true,
                 opacity: 0.95
             });
             const globeMesh = new THREE.Mesh(globeGeometry, globeMaterial);
             globeGroup.add(globeMesh);
 
-            const wireframeGeometry = new THREE.SphereGeometry(5.05, 32, 32);
+            const wireframeGeometry = new THREE.SphereGeometry(5.1, 32, 32);
             const wireframeMaterial = new THREE.MeshBasicMaterial({
                 color: 0x00a8ff,
                 wireframe: true,
                 transparent: true,
-                opacity: 0.2
+                opacity: 0.3
             });
             const wireframe = new THREE.Mesh(wireframeGeometry, wireframeMaterial);
             globeGroup.add(wireframe);
+
+            const outerGlowGeometry = new THREE.SphereGeometry(5.3, 32, 32);
+            const outerGlowMaterial = new THREE.MeshBasicMaterial({
+                color: 0x0088ff,
+                transparent: true,
+                opacity: 0.1,
+                side: THREE.BackSide
+            });
+            const outerGlow = new THREE.Mesh(outerGlowGeometry, outerGlowMaterial);
+            globeGroup.add(outerGlow);
 
             for (let i = 0; i < 50; i++) {
                 const phi = Math.acos(-1 + (2 * i) / 50);
@@ -660,6 +671,14 @@ class PathSafeApp {
 
         document.getElementById('watch-demo').addEventListener('click', () => {
             this.startDemoMode();
+        });
+
+        document.getElementById('cta-demo')?.addEventListener('click', () => {
+            this.startDemoMode();
+        });
+
+        document.getElementById('cta-learn')?.addEventListener('click', () => {
+            document.getElementById('how-it-works').scrollIntoView({ behavior: 'smooth' });
         });
 
         document.getElementById('close-card').addEventListener('click', () => {
