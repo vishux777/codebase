@@ -60,7 +60,7 @@ npm run build:css
 npm run dev
 ```
 
-The server runs on port 5000. Visit http://0.0.0.0:5000
+The server runs on port 5000. Visit http://localhost:5000
 
 ## Project Structure
 
