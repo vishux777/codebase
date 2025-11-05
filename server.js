@@ -12,5 +12,5 @@ app.get('/', (req, res) => {
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`PathSafe 3D Demo Server running on port ${PORT}`);
-  console.log(`Visit: http://0.0.0.0:${PORT}`);
+  console.log(`Visit: http://localhost:${PORT}`);
 });
